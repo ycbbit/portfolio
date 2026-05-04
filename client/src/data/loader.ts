@@ -6,7 +6,7 @@ const isProd = import.meta.env.PROD;
 // In development: fetch from /api/* (admin page edits take effect immediately)
 
 const dataModules = isProd
-  ? (import.meta.glob("../../shared/data/*.json", {
+  ? (import.meta.glob("../../../shared/data/*.json", {
       query: "?raw",
       import: "default",
       eager: true,
@@ -15,7 +15,7 @@ const dataModules = isProd
 
 function getProdData<T>(filename: string): T | null {
   if (!dataModules) return null;
-  const key = `../../shared/data/${filename}`;
+  const key = `../../../shared/data/${filename}`;
   const raw = dataModules[key];
   if (!raw) return null;
   return JSON.parse(raw) as T;
