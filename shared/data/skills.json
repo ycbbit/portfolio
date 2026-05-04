@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Frontend",
+    "slug": "frontend",
+    "skills": [
+      {
+        "name": "Frontend Development",
+        "description": "React, TypeScript, Tailwind CSS, and modern web technologies",
+        "icon": "code2"
+      },
+      {
+        "name": "UI/UX Design",
+        "description": "Thoughtful design systems and user-centered interfaces",
+        "icon": "palette"
+      },
+      {
+        "name": "Web Performance",
+        "description": "Optimized, fast-loading websites with excellent user experience",
+        "icon": "zap"
+      }
+    ]
+  },
+  {
+    "name": "Product & Strategy",
+    "slug": "product-strategy",
+    "skills": [
+      {
+        "name": "Product Management",
+        "description": "Roadmap planning, prioritization, and cross-functional team leadership",
+        "icon": "target"
+      },
+      {
+        "name": "User Research",
+        "description": "Customer interviews, usability testing, and data-informed decisions",
+        "icon": "search"
+      },
+      {
+        "name": "Agile Delivery",
+        "description": "Scrum, kanban, and iterative shipping with continuous feedback",
+        "icon": "trello"
+      }
+    ]
+  }
+]

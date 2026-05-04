@@ -1,294 +1,646 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Mail, Github, Linkedin, ExternalLink } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  ArrowRight,
+  Mail,
+  Github,
+  Linkedin,
+  ExternalLink,
+  Menu,
+  Sun,
+  Moon,
+  Code2,
+  Palette,
+  Zap,
+  Target,
+  Search,
+  Globe,
+  ShoppingCart,
+  Users,
+  Layout,
+  Briefcase,
+  FolderGit2,
+  Sparkles,
+} from "lucide-react";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { fetchSite, fetchProfile, fetchProjects, fetchSkills } from "@/data/loader";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useIsMobile } from "@/hooks/useMobile";
+import type { SiteConfig, Profile, Project, SkillCategory } from "@shared/types";
+import GuestbookWidget from "@/components/Guestbook";
+import Timeline from "@/components/Timeline";
+import Globe3D from "@/components/Globe";
 
-/**
- * Personal Website - Warm Minimalism Design
- * Design Philosophy: Organic shapes, generous whitespace, warm color palette
- * Color Palette: Cream (#FFFBF5), Warm Brown (#3D2817), Terracotta (#C85A3A), Sage Green (#A8B5A0)
- * Typography: Outfit font family, warm and approachable
- * Interactions: Smooth transitions, gentle hover effects, soft animations
- */
+// ---------------------------------------------------------------------------
+// Animation variants
+// ---------------------------------------------------------------------------
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 48 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
+};
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } },
+};
+
+const cardVariant = {
+  hidden: { opacity: 0, y: 32 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
+};
+
+const once = { once: true, margin: "-80px" };
+
+// ---------------------------------------------------------------------------
+// useActiveSection hook
+// ---------------------------------------------------------------------------
+
+function useActiveSection(sectionIds: string[]) {
+  const [active, setActive] = useState<string | null>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length > 0) {
+          setActive(visible[0].target.id);
+        }
+      },
+      { rootMargin: "-80px 0px -50% 0px", threshold: 0 },
+    );
+
+    const els = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter(Boolean) as HTMLElement[];
+    els.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [sectionIds]);
+
+  return active;
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [site, setSite] = useState<SiteConfig | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [skills, setSkills] = useState<SkillCategory[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const isMobile = useIsMobile();
+
+  const sectionIds = ["hero", "about", "skills", "work", "guestbook"];
+  const activeSection = useActiveSection(sectionIds);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const h = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", h);
+    return () => window.removeEventListener("scroll", h);
   }, []);
 
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Navigation */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? "bg-background/80 backdrop-blur-md shadow-sm border-b border-border"
-            : "bg-transparent"
-        }`}
-      >
-        <div className="container flex items-center justify-between h-16">
-          <div className="text-xl font-bold text-accent">Portfolio</div>
-          <div className="flex gap-6 items-center">
-            <a href="#about" className="text-sm hover:text-accent transition-colors">
-              About
-            </a>
-            <a href="#work" className="text-sm hover:text-accent transition-colors">
-              Work
-            </a>
-            <a href="#contact" className="text-sm hover:text-accent transition-colors">
-              Contact
-            </a>
-          </div>
+  useEffect(() => {
+    (async () => {
+      try {
+        const [s, p, pr, sk] = await Promise.all([
+          fetchSite(),
+          fetchProfile(),
+          fetchProjects(),
+          fetchSkills(),
+        ]);
+        setSite(s);
+        setProfile(p);
+        setProjects(pr);
+        setSkills(sk);
+        if (s) document.title = s.title || s.name || "Portfolio";
+      } catch {}
+    })();
+  }, []);
+
+  const socialIcons: Record<string, React.ComponentType<any>> = {
+    github: Github,
+    linkedin: Linkedin,
+    email: Mail,
+  };
+
+  const skillIconMap: Record<string, React.ComponentType<any>> = {
+    code2: Code2,
+    palette: Palette,
+    zap: Zap,
+    target: Target,
+    search: Search,
+    trello: ({ className }: { className?: string }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect width="4" height="16" x="3" y="4" rx="1" />
+        <rect width="4" height="11" x="10" y="9" rx="1" />
+        <rect width="4" height="6" x="17" y="14" rx="1" />
+      </svg>
+    ),
+    monitor: ({ className }: { className?: string }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect width="20" height="14" x="2" y="3" rx="2" />
+        <line x1="8" x2="16" y1="21" y2="21" />
+        <line x1="12" x2="12" y1="17" y2="21" />
+      </svg>
+    ),
+  };
+
+  const projectIconMap: Record<string, React.ComponentType<any>> = {
+    globe: Globe,
+    "shopping-cart": ShoppingCart,
+    users: Users,
+    layout: Layout,
+  };
+
+  const navItems = site?.navItems || [
+    { label: "About", href: "#about" },
+    { label: "Work", href: "#work" },
+    { label: "Guestbook", href: "#guestbook" },
+  ];
+
+  // -----------------------------------------------------------------------
+  // Navbar
+  // -----------------------------------------------------------------------
+  const NavBar = (
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-background/85 backdrop-blur-md shadow-sm border-b border-border"
+          : "bg-transparent"
+      }`}
+    >
+      <div className="container flex items-center justify-between h-16">
+        <a href="#" className="text-xl font-bold text-accent hover:opacity-80 transition-opacity">
+          {site?.name || "Portfolio"}
+        </a>
+
+        {/* Desktop nav */}
+        <div className="hidden md:flex items-center gap-1">
+          {navItems.map((item) => {
+            const id = item.href.replace("#", "");
+            const isActive = activeSection === id;
+            return (
+              <a
+                key={item.href}
+                href={item.href}
+                className={`relative px-3 py-1.5 text-sm rounded-full transition-colors ${
+                  isActive
+                    ? "text-accent font-medium"
+                    : "text-foreground/70 hover:text-foreground"
+                }`}
+              >
+                {item.label}
+                {isActive && (
+                  <motion.span
+                    layoutId="nav-active"
+                    className="absolute inset-0 bg-accent/10 rounded-full -z-10"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </a>
+            );
+          })}
+
+          {/* Dark mode toggle */}
+          {toggleTheme && (
+            <button
+              onClick={toggleTheme}
+              className="ml-2 w-9 h-9 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </button>
+          )}
         </div>
-      </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
-        {/* Hero Background Image */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage:
-              "url('https://d2xsxph8kpxj0f.cloudfront.net/310519663622555566/Z5kGWqYdCCqh5gmWfKMFfC/hero-gradient-WjSGzXeQUxpZk6ybRXRKJp.webp')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundAttachment: "fixed",
-          }}
-        />
-
-        {/* Overlay for text readability */}
-        <div className="absolute inset-0 bg-background/40 z-0" />
-
-        <div className="container relative z-10">
-          <div className="max-w-2xl">
-            <div className="mb-6 inline-block">
-              <div className="px-4 py-2 rounded-full bg-accent/10 border border-accent/30">
-                <p className="text-sm text-accent font-medium">Welcome to my portfolio</p>
+        {/* Mobile menu trigger */}
+        <div className="flex md:hidden items-center gap-2">
+          {toggleTheme && (
+            <button
+              onClick={toggleTheme}
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-muted"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          )}
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Menu">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-64 pt-12">
+              <div className="flex flex-col gap-2">
+                {navItems.map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`px-4 py-2.5 rounded-xl text-base transition-colors ${
+                      activeSection === item.href.replace("#", "")
+                        ? "bg-accent/10 text-accent font-medium"
+                        : "text-foreground/70 hover:bg-muted"
+                    }`}
+                  >
+                    {item.label}
+                  </a>
+                ))}
               </div>
-            </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
+    </nav>
+  );
 
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-foreground">
-              Crafting digital experiences with care
-            </h1>
-
-            <p className="text-lg text-foreground/80 mb-8 max-w-xl leading-relaxed">
-              I design and build beautiful, functional websites and applications. Let's create something meaningful together.
+  // -----------------------------------------------------------------------
+  // Hero
+  // -----------------------------------------------------------------------
+  const Hero = (
+    <motion.section
+      id="hero"
+      initial="hidden"
+      whileInView="visible"
+      viewport={once}
+      variants={fadeUp}
+      className="relative pt-32 pb-24 overflow-hidden"
+    >
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          background: "radial-gradient(ellipse 80% 60% at 50% -20%, hsl(var(--accent)/0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 50%, hsl(var(--secondary)/0.18) 0%, transparent 50%)",
+        }}
+      />
+      <div className="absolute inset-0 z-0 opacity-[0.07] pointer-events-none" style={{
+        backgroundImage: "radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)",
+        backgroundSize: "32px 32px",
+      }} />
+      <div className="container relative z-10">
+        <div className="flex items-center gap-8">
+          <div className="max-w-2xl flex-1">
+            <p className="text-lg font-medium text-accent mb-2">
+              Hi, I&rsquo;m {profile?.name || site?.name || "Portfolio"}
             </p>
-
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-foreground">
+              {profile?.heroTagline || "Crafting digital experiences with care"}
+            </h1>
+            <p className="text-lg text-foreground/80 mb-8 max-w-xl leading-relaxed">
+              {profile?.heroDescription || ""}
+            </p>
             <div className="flex gap-4">
-              <Button
-                size="lg"
-                className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full group"
-              >
-                Get in touch
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full group" asChild>
+                <a href="#guestbook">
+                  Get in touch
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </a>
               </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="rounded-full border-border hover:bg-muted"
-              >
-                View my work
+              <Button variant="outline" size="lg" className="rounded-full border-border hover:bg-muted" asChild>
+                <a href="#work">View my work</a>
               </Button>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* About Section */}
-      <section id="about" className="py-20 border-t border-border">
-        <div className="container">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl font-bold mb-6">About me</h2>
-              <p className="text-foreground/70 mb-4 leading-relaxed">
-                With a passion for clean design and thoughtful development, I create digital products that users love. My approach combines aesthetic excellence with functional simplicity.
-              </p>
-              <p className="text-foreground/70 mb-6 leading-relaxed">
-                Whether it's a personal website, a web application, or a complete brand identity, I bring dedication to every project.
-              </p>
-              <div className="flex gap-4">
-                <div className="organic-card p-6 flex-1">
-                  <div className="text-2xl font-bold text-accent mb-2">5+</div>
-                  <p className="text-sm text-foreground/60">Years of experience</p>
-                </div>
-                <div className="organic-card p-6 flex-1">
-                  <div className="text-2xl font-bold text-accent mb-2">50+</div>
-                  <p className="text-sm text-foreground/60">Projects completed</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Decorative Blob */}
-            <div className="flex justify-center">
-              <div className="relative w-64 h-64">
-                <img
-                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663622555566/Z5kGWqYdCCqh5gmWfKMFfC/accent-blob-TdVX6MXGkAZFTHd4EBJiVK.webp"
-                  alt="Decorative blob"
-                  className="w-full h-full object-contain animate-pulse"
-                  style={{ animationDuration: "4s" }}
-                />
-              </div>
-            </div>
+          {/* 3D Globe — desktop only */}
+          <div className="hidden lg:flex shrink-0 items-center justify-center" style={{ width: 360, height: 360 }}>
+            <Globe3D size={340} />
           </div>
         </div>
-      </section>
+      </div>
+    </motion.section>
+  );
 
-      {/* Skills Section */}
-      <section className="py-20 bg-muted/30 border-t border-border">
-        <div className="container">
-          <h2 className="text-4xl font-bold mb-12">Skills & expertise</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                title: "Frontend Development",
-                description: "React, TypeScript, Tailwind CSS, and modern web technologies",
-                icon: "🎨",
-              },
-              {
-                title: "UI/UX Design",
-                description: "Thoughtful design systems and user-centered interfaces",
-                icon: "✨",
-              },
-              {
-                title: "Web Performance",
-                description: "Optimized, fast-loading websites with excellent user experience",
-                icon: "⚡",
-              },
-            ].map((skill, idx) => (
-              <div key={idx} className="organic-card p-8 hover:shadow-lg">
-                <div className="text-4xl mb-4">{skill.icon}</div>
-                <h3 className="text-xl font-bold mb-3">{skill.title}</h3>
-                <p className="text-foreground/70 text-sm leading-relaxed">{skill.description}</p>
-              </div>
+  // -----------------------------------------------------------------------
+  // About
+  // -----------------------------------------------------------------------
+  const About = (
+    <motion.section
+      id="about"
+      initial="hidden"
+      whileInView="visible"
+      viewport={once}
+      variants={fadeUp}
+      className="py-24 bg-card/30"
+    >
+      <div className="container">
+        <div className="grid md:grid-cols-5 gap-10 items-center">
+          {/* Text column */}
+          <div className="md:col-span-3">
+            <h2 className="text-4xl font-bold mb-6">About me</h2>
+            {(profile?.aboutParagraphs || []).map((p, i) => (
+              <p key={i} className="text-foreground/70 mb-4 leading-relaxed">
+                {p}
+              </p>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* Work Section */}
-      <section id="work" className="py-20 border-t border-border">
-        <div className="container">
-          <h2 className="text-4xl font-bold mb-12">Featured work</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              {
-                title: "Project Alpha",
-                description: "A modern web application built with React and TypeScript",
-                tags: ["React", "TypeScript", "Tailwind"],
-              },
-              {
-                title: "Project Beta",
-                description: "E-commerce platform with seamless user experience",
-                tags: ["Next.js", "Stripe", "PostgreSQL"],
-              },
-              {
-                title: "Project Gamma",
-                description: "Real-time collaboration tool for creative teams",
-                tags: ["React", "WebSocket", "Node.js"],
-              },
-              {
-                title: "Project Delta",
-                description: "Personal branding and portfolio website",
-                tags: ["Design", "Frontend", "SEO"],
-              },
-            ].map((project, idx) => (
-              <div
-                key={idx}
-                className="organic-card p-8 group cursor-pointer hover:shadow-lg transition-all"
-              >
-                <div className="mb-4 w-full h-48 rounded-2xl bg-gradient-to-br from-accent/20 to-secondary/20 flex items-center justify-center">
-                  <div className="text-6xl opacity-30">→</div>
+          {/* Visual column — avatar + stats */}
+          <div className="md:col-span-2 flex flex-col items-center gap-6">
+            {/* Avatar */}
+            <div className="relative w-44 h-44 group">
+              {/* Pulse ring */}
+              <div className="absolute -inset-4 rounded-2xl bg-accent/8 animate-pulse" style={{ animationDuration: "3s" }} />
+              {/* Glass ring */}
+              <div className="absolute -inset-2 rounded-2xl border border-accent/15 bg-accent/3 backdrop-blur-sm" />
+              {profile?.avatar ? (
+                <img src={profile.avatar} alt="Avatar" className="relative w-full h-full object-cover rounded-2xl shadow-lg" />
+              ) : (
+                <div className="relative w-full h-full rounded-2xl bg-gradient-to-br from-accent/35 via-accent/15 to-secondary/25 flex items-center justify-center shadow-lg backdrop-blur-sm border border-white/10">
+                  <span className="text-5xl font-bold bg-gradient-to-br from-accent to-accent/70 bg-clip-text text-transparent select-none">
+                    {(profile?.name || site?.name || "P")[0].toUpperCase()}
+                  </span>
                 </div>
-                <h3 className="text-xl font-bold mb-2 group-hover:text-accent transition-colors">
-                  {project.title}
-                </h3>
-                <p className="text-foreground/70 mb-4 text-sm">{project.description}</p>
+              )}
+            </div>
+
+            {/* Name + role */}
+            <div className="text-center">
+              <p className="text-lg font-semibold text-foreground">
+                {profile?.name || site?.name || "Portfolio"}
+              </p>
+              {profile?.role && (
+                <p className="text-sm text-foreground/50 mt-0.5">{profile.role}</p>
+              )}
+            </div>
+
+            {/* Stats */}
+            <div className="flex gap-2 w-full max-w-xs">
+              {(profile?.stats || []).map((stat, i) => {
+                const icons = [Briefcase, FolderGit2];
+                const StatIcon = icons[i] || Sparkles;
+                return (
+                  <div key={i} className="organic-card p-4 flex-1 text-center">
+                    <div className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-accent/10 mb-2">
+                      <StatIcon className="h-4 w-4 text-accent" />
+                    </div>
+                    <div className="text-xl font-bold text-foreground">{stat.value}</div>
+                    <p className="text-[11px] text-foreground/50 mt-0.5">{stat.label}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Timeline */}
+        {profile?.timeline && profile.timeline.length > 0 && (
+          <div className="mt-16">
+            <Timeline entries={profile.timeline} />
+          </div>
+        )}
+      </div>
+    </motion.section>
+  );
+
+  // -----------------------------------------------------------------------
+  // Skills
+  // -----------------------------------------------------------------------
+  const Skills = skills.length > 0 && (
+    <motion.section
+      id="skills"
+      initial="hidden"
+      whileInView="visible"
+      viewport={once}
+      variants={stagger}
+      className="py-24 bg-muted/30"
+    >
+      <div className="container">
+        <motion.h2 variants={fadeUp} className="text-4xl font-bold mb-12">
+          Skills & expertise
+        </motion.h2>
+        {skills.map((category) => (
+          <div key={category.slug} className="mb-10 last:mb-0">
+            <motion.h3 variants={fadeUp} className="text-lg font-semibold mb-5 text-foreground/50 uppercase tracking-wider">
+              {category.name}
+            </motion.h3>
+            <motion.div variants={stagger} className="grid md:grid-cols-3 gap-6">
+              {category.skills.map((skill) => {
+                const IconComp = skillIconMap[skill.icon];
+                return (
+                  <motion.div
+                    key={skill.name}
+                    variants={cardVariant}
+                    whileHover={{ y: -4 }}
+                    className="organic-card p-6 hover:shadow-lg"
+                  >
+                    <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-accent/10 mb-4">
+                      {IconComp ? (
+                        <IconComp className="h-5 w-5 text-accent" />
+                      ) : (
+                        <span className="text-xl">{skill.icon}</span>
+                      )}
+                    </div>
+                    <h3 className="text-base font-bold mb-2">{skill.name}</h3>
+                    <p className="text-foreground/60 text-sm leading-relaxed">{skill.description}</p>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </div>
+        ))}
+      </div>
+    </motion.section>
+  );
+
+  // -----------------------------------------------------------------------
+  // Work
+  // -----------------------------------------------------------------------
+  const Work = (
+    <motion.section
+      id="work"
+      initial="hidden"
+      whileInView="visible"
+      viewport={once}
+      variants={stagger}
+      className="py-24"
+    >
+      <div className="container">
+        <motion.h2 variants={fadeUp} className="text-4xl font-bold mb-12">
+          Featured work
+        </motion.h2>
+        <motion.div variants={stagger} className="grid md:grid-cols-2 gap-8">
+          {projects.map((project) => (
+            <motion.div
+              key={project.id}
+              variants={cardVariant}
+              whileHover={{ y: -6 }}
+              onClick={() => setSelectedProject(project)}
+              className="organic-card p-8 group cursor-pointer hover:shadow-lg transition-all"
+            >
+              <div
+                className={`mb-4 w-full h-48 rounded-2xl bg-gradient-to-br ${project.gradient || "from-accent/20 to-secondary/20"} flex items-center justify-center`}
+              >
+                {(() => {
+                  const PIcon = project.icon ? projectIconMap[project.icon] : null;
+                  return PIcon ? (
+                    <PIcon className="h-14 w-14 text-foreground/20 group-hover:text-foreground/30 transition-colors" />
+                  ) : (
+                    <div className="text-6xl text-foreground/20 group-hover:text-foreground/30 transition-colors">→</div>
+                  );
+                })()}
+              </div>
+              <h3 className="text-xl font-bold mb-2 group-hover:text-accent transition-colors">
+                {project.title}
+              </h3>
+              <p className="text-foreground/70 mb-4 text-sm">{project.description}</p>
+              <div className="flex flex-wrap gap-2">
+                {project.tags.map((tag) => (
+                  <span key={tag} className="text-xs px-3 py-1 rounded-full bg-muted text-foreground/70">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Project detail dialog */}
+      <Dialog open={!!selectedProject} onOpenChange={() => setSelectedProject(null)}>
+        <DialogContent className="max-w-lg">
+          {selectedProject && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl">{selectedProject.title}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div
+                  className={`w-full h-40 rounded-2xl bg-gradient-to-br ${selectedProject.gradient || "from-accent/20 to-secondary/20"} flex items-center justify-center`}
+                >
+                  {(() => {
+                    const PIcon = selectedProject.icon ? projectIconMap[selectedProject.icon] : null;
+                    return PIcon ? (
+                      <PIcon className="h-12 w-12 text-foreground/20" />
+                    ) : null;
+                  })()}
+                </div>
+                <p className="text-foreground/70">{selectedProject.description}</p>
                 <div className="flex flex-wrap gap-2">
-                  {project.tags.map((tag, i) => (
-                    <span
-                      key={i}
-                      className="text-xs px-3 py-1 rounded-full bg-muted text-foreground/70"
-                    >
-                      {tag}
+                  {selectedProject.tags.map((t) => (
+                    <span key={t} className="text-xs px-3 py-1 rounded-full bg-muted text-foreground/70">
+                      {t}
                     </span>
                   ))}
                 </div>
+                <div className="flex gap-3 pt-2">
+                  {selectedProject.links?.live && (
+                    <Button size="sm" asChild>
+                      <a href={selectedProject.links.live} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-1 h-4 w-4" /> Live Site
+                      </a>
+                    </Button>
+                  )}
+                  {selectedProject.links?.github && (
+                    <Button size="sm" variant="outline" asChild>
+                      <a href={selectedProject.links.github} target="_blank" rel="noopener noreferrer">
+                        <Github className="mr-1 h-4 w-4" /> Source
+                      </a>
+                    </Button>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </motion.section>
+  );
+
+  // -----------------------------------------------------------------------
+  // Guestbook
+  // -----------------------------------------------------------------------
+  const Guestbook = (
+    <motion.section
+      id="guestbook"
+      initial="hidden"
+      whileInView="visible"
+      viewport={once}
+      variants={fadeUp}
+      className="py-24 bg-muted/20"
+    >
+      <div className="container">
+        <div className="max-w-2xl mx-auto">
+          {site?.guestbook?.enabled ? (
+            <GuestbookWidget config={site.guestbook} />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-sm text-foreground/40">
+                Guestbook coming soon — check back later.
+              </p>
+            </div>
+          )}
         </div>
-      </section>
+      </div>
+    </motion.section>
+  );
 
-      {/* Contact Section */}
-      <section id="contact" className="py-20 border-t border-border">
-        <div className="container">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-6">Let's work together</h2>
-            <p className="text-foreground/70 mb-12 text-lg leading-relaxed">
-              Have a project in mind? I'd love to hear about it. Get in touch and let's create something amazing.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button
-                size="lg"
-                className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full"
-              >
-                <Mail className="mr-2 h-4 w-4" />
-                Send me an email
-              </Button>
-              <Button variant="outline" size="lg" className="rounded-full">
-                Schedule a call
-              </Button>
-            </div>
-
-            {/* Social Links */}
-            <div className="flex justify-center gap-6">
-              {[
-                { icon: Github, label: "GitHub", href: "#" },
-                { icon: Linkedin, label: "LinkedIn", href: "#" },
-                { icon: Mail, label: "Email", href: "mailto:hello@example.com" },
-              ].map((social, idx) => (
-                <a
-                  key={idx}
-                  href={social.href}
-                  className="w-12 h-12 rounded-full bg-muted hover:bg-accent hover:text-accent-foreground flex items-center justify-center transition-all"
-                  aria-label={social.label}
-                >
-                  <social.icon className="h-5 w-5" />
-                </a>
-              ))}
-            </div>
+  // -----------------------------------------------------------------------
+  // Footer
+  // -----------------------------------------------------------------------
+  const Footer = (
+    <footer className="py-12">
+      <div className="container">
+        <div className="flex flex-col items-center gap-4">
+          {/* Small social row */}
+          <div className="flex gap-4">
+            {site?.socialLinks && Object.entries(site.socialLinks)
+              .filter(([, v]) => v && v !== "#")
+              .map(([key, value]) => {
+                const Icon = socialIcons[key];
+                if (!Icon) return null;
+                const href = key === "email" ? `mailto:${value}` : value;
+                return (
+                  <a
+                    key={key}
+                    href={href as string}
+                    target={key === "email" ? undefined : "_blank"}
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
+                    aria-label={key}
+                  >
+                    <Icon className="h-4 w-4 text-foreground/40 hover:text-foreground/70 transition-colors" />
+                  </a>
+                );
+              })}
           </div>
+          <p className="text-xs text-foreground/40">
+            &copy; {new Date().getFullYear()} {site?.name || "Portfolio"}
+          </p>
         </div>
-      </section>
+      </div>
+    </footer>
+  );
 
-      {/* Footer */}
-      <footer className="py-12 border-t border-border bg-muted/20">
-        <div className="container">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-sm text-foreground/60">
-              © 2024 My Portfolio. All rights reserved.
-            </div>
-            <div className="flex gap-6 mt-4 md:mt-0">
-              <a href="#" className="text-sm text-foreground/60 hover:text-accent transition-colors">
-                Privacy
-              </a>
-              <a href="#" className="text-sm text-foreground/60 hover:text-accent transition-colors">
-                Terms
-              </a>
-              <a href="#" className="text-sm text-foreground/60 hover:text-accent transition-colors">
-                Sitemap
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+  // -----------------------------------------------------------------------
+  // Render
+  // -----------------------------------------------------------------------
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      {NavBar}
+      {Hero}
+      {About}
+      {Skills}
+      {Work}
+      {Guestbook}
+      {Footer}
     </div>
   );
 }

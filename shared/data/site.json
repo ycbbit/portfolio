@@ -1,0 +1,27 @@
+{
+  "name": "Portfolio",
+  "title": "My Portfolio",
+  "tagline": "Welcome to my portfolio",
+  "description": "Personal website and portfolio",
+  "navItems": [
+    { "label": "About", "href": "#about" },
+    { "label": "Work", "href": "#work" },
+    { "label": "Guestbook", "href": "#guestbook" }
+  ],
+  "socialLinks": {
+    "github": "#",
+    "linkedin": "#",
+    "email": "hello@example.com"
+  },
+  "footerLinks": [
+    { "label": "Privacy", "href": "#" },
+    { "label": "Terms", "href": "#" },
+    { "label": "Sitemap", "href": "#" }
+  ],
+  "guestbook": {
+    "enabled": false,
+    "repo": "ycbbit/portfolio",
+    "issueNumber": 1,
+    "token": "github_pat_xxxxxxxxxxxx"
+  }
+}

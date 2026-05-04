@@ -1,0 +1,38 @@
+[
+  {
+    "id": "project-alpha",
+    "title": "Project Alpha",
+    "description": "A modern web application built with React and TypeScript",
+    "tags": ["React", "TypeScript", "Tailwind"],
+    "gradient": "from-accent/20 to-secondary/20",
+    "icon": "globe",
+    "links": {}
+  },
+  {
+    "id": "project-beta",
+    "title": "Project Beta",
+    "description": "E-commerce platform with seamless user experience",
+    "tags": ["Next.js", "Stripe", "PostgreSQL"],
+    "gradient": "from-secondary/20 to-accent/20",
+    "icon": "shopping-cart",
+    "links": {}
+  },
+  {
+    "id": "project-gamma",
+    "title": "Project Gamma",
+    "description": "Real-time collaboration tool for creative teams",
+    "tags": ["React", "WebSocket", "Node.js"],
+    "gradient": "from-accent/20 to-secondary/20",
+    "icon": "users",
+    "links": {}
+  },
+  {
+    "id": "project-delta",
+    "title": "Project Delta",
+    "description": "Personal branding and portfolio website",
+    "tags": ["Design", "Frontend", "SEO"],
+    "gradient": "from-secondary/20 to-accent/20",
+    "icon": "layout",
+    "links": {}
+  }
+]

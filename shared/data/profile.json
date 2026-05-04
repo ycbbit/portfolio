@@ -1,0 +1,80 @@
+{
+  "name": "",
+  "role": "Product Manager",
+  "heroTagline": "Crafting digital experiences with care",
+  "heroDescription": "I design and build beautiful, functional websites and applications. Let's create something meaningful together.",
+  "aboutParagraphs": [
+    "With over 15 years of international CRM/ERP digital transformation experience, I excel in enterprise-level business scenarios, driving end-to-end solutions from consulting to system implementation, focusing on operational efficiency and business growth.",
+    "Proficient in ToB sales management, covering customer management, channel PSI, and O2C order lifecycle, I align business strategy with process design and system architecture to drive digital transformation.",
+    "An active learner in the latest AI fields, including Vibe Coding, Skill, Agent, and more."
+  ],
+  "stats": [
+    {
+      "value": "15+",
+      "label": "Years of experience"
+    },
+    {
+      "value": "10+",
+      "label": "Projects completed"
+    }
+  ],
+  "avatar": "",
+  "timeline": [
+    {
+      "year": "2026",
+      "title": "Senior Product Manager",
+      "organization": "TechCorp",
+      "description": "Leading cross-functional teams to deliver enterprise SaaS products. Drove 40% increase in user adoption through data-informed redesign.",
+      "type": "work",
+      "tags": ["Product Strategy", "SaaS", "Team Leadership"]
+    },
+    {
+      "year": "2025",
+      "title": "Portfolio Website Launch",
+      "organization": "Personal Project",
+      "description": "Designed and built a modern portfolio site with React, Tailwind CSS, and GitHub Pages deployment.",
+      "type": "project",
+      "tags": ["React", "Tailwind", "GitHub Pages"]
+    },
+    {
+      "year": "2024",
+      "title": "Product Manager",
+      "organization": "StartupXYZ",
+      "description": "Owned product roadmap and shipped 3 major feature releases. Established user research practice.",
+      "type": "work",
+      "tags": ["Roadmap", "User Research", "Agile"]
+    },
+    {
+      "year": "2023",
+      "title": "E-Commerce Redesign",
+      "organization": "Freelance",
+      "description": "Led complete UX overhaul of a mid-market e-commerce platform, improving conversion by 25%.",
+      "type": "project",
+      "tags": ["UX Design", "E-Commerce", "A/B Testing"]
+    },
+    {
+      "year": "2022",
+      "title": "MBA Graduate",
+      "organization": "Business School",
+      "description": "Completed MBA with focus on product management and digital transformation.",
+      "type": "education",
+      "tags": ["MBA", "Product Management"]
+    },
+    {
+      "year": "2021",
+      "title": "Junior Product Manager",
+      "organization": "AgencyCo",
+      "description": "Managed 8+ client projects across fintech, healthtech, and e-commerce verticals.",
+      "type": "work",
+      "tags": ["Client Management", "Fintech", "Healthtech"]
+    },
+    {
+      "year": "2020",
+      "title": "Design System MVP",
+      "organization": "Open Source",
+      "description": "Created and released an open-source component library adopted by 200+ developers.",
+      "type": "project",
+      "tags": ["Open Source", "Design Systems", "React"]
+    }
+  ]
+}
