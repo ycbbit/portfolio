@@ -235,7 +235,7 @@ export default defineConfig({
   },
   envDir: path.resolve(import.meta.dirname),
   root: path.resolve(import.meta.dirname, "client"),
-  base: "/portfolio/",
+  base: "/",
   build: {
     outDir: path.resolve(import.meta.dirname, "docs"),
     emptyOutDir: true,
